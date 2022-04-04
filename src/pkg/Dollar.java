@@ -4,6 +4,7 @@ import java.io.IOException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 import java.lang.System;
@@ -12,6 +13,18 @@ public class Dollar {
 	
 	double buying_usd,selling_usd;
 	
+	String exchangeDate;
+	
+
+	public String getExchangeDate() {
+		return exchangeDate;
+	}
+
+
+	public void setExchangeDate(String exchangeDate) {
+		this.exchangeDate = exchangeDate;
+	}
+
 
 	public double getBuying_usd() {
 		return buying_usd;
@@ -46,6 +59,7 @@ public class Dollar {
 	            // Document doc = conn.get();
 	            //connecting and converting html to Document object
 	            Document doc = Jsoup.connect(page).get();
+	            
 
 	            // title of the page
 	            //System.out.println("title of the page "+doc.title());
@@ -56,6 +70,14 @@ public class Dollar {
 	             * content
 	             */
 	            Element sectionId = doc.getElementById("content");
+	            
+	            Elements exDate = doc.getElementsByClass("card-bt-header-subtitle");
+	            
+	            setExchangeDate(exDate.get(1).text());
+	            
+	            System.out.println(getExchangeDate().substring(15).trim());
+	            
+	            
 
 	            /*
 	             * Web site is copy pasted. So there are two identical tables with content
@@ -64,6 +86,8 @@ public class Dollar {
 	             * Extracted based on table tag.
 	             */
 	             Element currencyTableOne = sectionId.getElementsByTag("table").first();
+	             
+	             
 
 	                /*
 	                 * From the table, currency details are in body of the table defined as tbody
