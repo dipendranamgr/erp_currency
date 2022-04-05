@@ -1,13 +1,15 @@
 package pkg;
 
 import java.io.IOException;
+import java.lang.System;
+import java.text.ParseException;
+
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
-import java.lang.System;
 
 public class Dollar {
 	
@@ -46,7 +48,7 @@ public class Dollar {
 	}
 
 
-	public void parseNRB() {
+	public void parseNRB() throws ParseException {
 		 try {
 
 
@@ -71,12 +73,23 @@ public class Dollar {
 	             */
 	            Element sectionId = doc.getElementById("content");
 	            
-	            Elements exDate = doc.getElementsByClass("card-bt-header-subtitle");
+	            //Get the updated date rate
+	            //there are multiple div tag with card-bt-header-subtitle as class attribute.
+	            //Above class attribute div section (first) contains the exchange rate updated date
+	            Element exDate = doc.getElementsByClass("card-bt-header-subtitle").first();
 	            
-	            setExchangeDate(exDate.get(1).text());
+	            //convert Last update date month date, year  to date only
+	            setExchangeDate(exDate.text().substring(15).trim());
 	            
-	            System.out.println(getExchangeDate().substring(15).trim());
+	            //System.out.println("print my date " +getExchangeDate().substring(15).trim());
 	            
+	            //String date = getExchangeDate().substring(15).trim();
+	            
+	            //Date dateRate = new SimpleDateFormat("M dd, yyyy").parse(date);
+	            
+	            //System.out.println(dateRate);
+	            
+	          
 	            
 
 	            /*

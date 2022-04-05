@@ -1,22 +1,18 @@
 package pkg;
 
 import java.sql.Connection;
-//import java.sql.Date;
 import java.sql.DriverManager;
-//import java.sql.ResultSet;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.ResultSet;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.Date;
-//import java.sql.Statement;
-import java.sql.PreparedStatement;
+import java.util.Locale;
 
-
-
-
-public class OracleConnection {
+public class CompareDate {
 	
 	public static final String DBURL = "jdbc:oracle:thin:@172.16.7.243:1521:NDCLD";
     public static final String DBUSER = "xxnt";
@@ -47,17 +43,22 @@ public class OracleConnection {
          
         // Connect to Oracle Database
         Connection con = DriverManager.getConnection(DBURL, DBUSER, DBPASS);
+        Statement statement = con.createStatement();
         
-        PreparedStatement pstmt = con.prepareStatement("INSERT INTO XXNT.XXNT_USD_EX_RATE(ID,SELLING_USD,BUYING_USD,UPDATED_DATE) values (?,?,?,?)");
+       // PreparedStatement pstmt = con.prepareStatement("INSERT INTO XXNT.XXNT_USD_EX_RATE(ID,SELLING_USD,BUYING_USD,UPDATED_DATE) values (?,?,?,?)");
         
-     pstmt.setInt(1,1);
-     pstmt.setDouble(2, dollar.getSelling_usd());
-     pstmt.setDouble(3,dollar.getBuying_usd());
-     //pstmt.setTimestamp(4,getCurrentTimeStamp());
-     pstmt.setDate(4,(java.sql.Date) date);
+        ResultSet rs = statement.executeQuery("select * from (SELECT * FROM XXNT.XXNT_USD_EX_RATE order by updated_date desc) where rownum=1");
+        
+         if(rs.next()) {
+        Date lastDate = rs.getDate(4);
+        System.out.println("last updated date is "+lastDate);
+         }
+         
+         rs.close();
+         statement.close();
+        
+        
      
-     pstmt.execute();
-     System.out.println("Date inserted successfully");
  
         //Statement statement = con.createStatement();
  
@@ -77,10 +78,6 @@ public class OracleConnection {
 
 	}
 	
-	private static java.sql.Timestamp getCurrentTimeStamp() {
-	    java.util.Date today = new java.util.Date();
-	    return new java.sql.Timestamp(today.getTime());
-	}
+
 
 }
-
