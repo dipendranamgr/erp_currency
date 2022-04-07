@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 //import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -12,6 +13,7 @@ import java.util.Locale;
 import java.util.Date;
 //import java.sql.Statement;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 
 
@@ -21,25 +23,31 @@ public class OracleConnection {
 	public static final String DBURL = "jdbc:oracle:thin:@172.16.7.243:1521:NDCLD";
     public static final String DBUSER = "xxnt";
     public static final String DBPASS = "xxnt";
+    
+    
 
     
     //private static DataSource dataSource;
     
  // Prepare to insert new fields in the table
     
+    
+    //public Preparedstatement 
 
 	public static void main(String[] args) throws SQLException, ParseException {
 		
 		Dollar dollar = new Dollar();
 		dollar.parseNRB();
 		
+		Date lastDate = null;
+		
 		
 		//updated date is in string
 		//convert into date
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.ENGLISH);
-        LocalDate ldate = LocalDate.parse(dollar.getExchangeDate(), formatter);
-		Date date = java.sql.Date.valueOf(ldate);
-        System.out.println(date);
+        LocalDate siteDateString = LocalDate.parse(dollar.getExchangeDate(), formatter);
+		Date siteDate = java.sql.Date.valueOf(siteDateString);
+        System.out.println(siteDate);
         
         
 		// Load Oracle JDBC Driver
@@ -48,16 +56,34 @@ public class OracleConnection {
         // Connect to Oracle Database
         Connection con = DriverManager.getConnection(DBURL, DBUSER, DBPASS);
         
-        PreparedStatement pstmt = con.prepareStatement("INSERT INTO XXNT.XXNT_USD_EX_RATE(ID,SELLING_USD,BUYING_USD,UPDATED_DATE) values (?,?,?,?)");
+        Statement statement = con.createStatement();
         
-     pstmt.setInt(1,1);
-     pstmt.setDouble(2, dollar.getSelling_usd());
-     pstmt.setDouble(3,dollar.getBuying_usd());
-     //pstmt.setTimestamp(4,getCurrentTimeStamp());
-     pstmt.setDate(4,(java.sql.Date) date);
-     
-     pstmt.execute();
-     System.out.println("Date inserted successfully");
+        ResultSet rs = statement.executeQuery("select * from (SELECT * FROM XXNT.XXNT_USD_EX_RATE order by updated_date desc) where rownum=1");
+        
+        if(rs.next()) {
+       lastDate = rs.getDate(4);       
+       System.out.println("last inserted date in system "+lastDate);
+        }
+        
+        rs.close();
+        statement.close();
+        
+        if(siteDate.equals(lastDate)) {
+        	System.exit(0);
+        }else {
+        	PreparedStatement pstmt = con.prepareStatement("INSERT INTO XXNT.XXNT_USD_EX_RATE(ID,SELLING_USD,BUYING_USD,UPDATED_DATE) values (?,?,?,?)");
+            
+            pstmt.setInt(1,1);
+            pstmt.setDouble(2, dollar.getSelling_usd());
+            pstmt.setDouble(3,dollar.getBuying_usd());
+            //pstmt.setTimestamp(4,getCurrentTimeStamp());
+            pstmt.setDate(4,(java.sql.Date) siteDate);
+            
+            pstmt.execute();
+            System.out.println("Date inserted successfully");
+        }
+        
+        
  
         //Statement statement = con.createStatement();
  

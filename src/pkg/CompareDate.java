@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -14,6 +15,18 @@ import java.util.Locale;
 
 public class CompareDate {
 	
+	String erpSystemDate;
+	
+	public String getErpSystemDate() {
+		return erpSystemDate;
+	}
+
+
+	public void setErpSystemDate(String erpSystemDate) {
+		this.erpSystemDate = erpSystemDate;
+	}
+
+
 	public static final String DBURL = "jdbc:oracle:thin:@172.16.7.243:1521:NDCLD";
     public static final String DBUSER = "xxnt";
     public static final String DBPASS = "xxnt";
@@ -24,7 +37,7 @@ public class CompareDate {
  // Prepare to insert new fields in the table
     
 
-	public static void main(String[] args) throws SQLException, ParseException {
+	public void getResult() throws SQLException, ParseException {
 		
 		Dollar dollar = new Dollar();
 		dollar.parseNRB();
@@ -51,6 +64,7 @@ public class CompareDate {
         
          if(rs.next()) {
         Date lastDate = rs.getDate(4);
+        setErpSystemDate(lastDate.toString());
         System.out.println("last updated date is "+lastDate);
          }
          
@@ -79,5 +93,14 @@ public class CompareDate {
 	}
 	
 
-
+	public boolean compareSystemNSiteDate(Date siteDate) throws ParseException {
+		
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-mm-dd");
+		Date sysDate = simpleDateFormat.parse(getErpSystemDate());
+		if(sysDate.equals(siteDate))
+			return true;
+		else
+			return false;
+		
+	}
 }
