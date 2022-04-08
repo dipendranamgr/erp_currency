@@ -56,9 +56,13 @@ public class OracleConnection {
         // Connect to Oracle Database
         Connection con = DriverManager.getConnection(DBURL, DBUSER, DBPASS);
         
-        Statement statement = con.createStatement();
+        //Statement statement = con.createStatement();
+        PreparedStatement selectStatement = con.prepareStatement("select * from (select * from xxnt.xxnt_gl_daily_rates_stg order by creation_date desc) where rownum=?");
         
-        ResultSet rs = statement.executeQuery("select * from (SELECT * FROM XXNT.XXNT_USD_EX_RATE order by updated_date desc) where rownum=1");
+        selectStatement.setString(1, "1");
+        ResultSet rs = selectStatement.executeQuery();
+        //ResultSet rs = statement.executeQuery("select * from (SELECT * FROM XXNT.XXNT_USD_EX_RATE order by updated_date desc) where rownum=1");
+        //PreparedStatement pstmt = con.prepareStatement("SELECT * FROM XXNT.XXNT_USD_EX_RATE order by updated_date desc) where rownum=1");
         
         if(rs.next()) {
        lastDate = rs.getDate(4);       
@@ -66,18 +70,50 @@ public class OracleConnection {
         }
         
         rs.close();
-        statement.close();
+        selectStatement.close();
         
         if(siteDate.equals(lastDate)) {
         	System.exit(0);
         }else {
-        	PreparedStatement pstmt = con.prepareStatement("INSERT INTO XXNT.XXNT_USD_EX_RATE(ID,SELLING_USD,BUYING_USD,UPDATED_DATE) values (?,?,?,?)");
+			/*
+			 * PreparedStatement pstmt =
+			 * con.prepareStatement("INSERT INTO xxnt.xxnt_gl_daily_rates_stg\n" +
+			 * "             (from_currency, \n" + "              to_currency, \n" +
+			 * "              from_date, \n" + "              end_date, \n" +
+			 * "              conv_type, \n" + "              exchange_rate, \n" +
+			 * "              status,\n" + "              error_message,\n" +
+			 * "              created_by,\n" + "              creation_date \n" +
+			 * "             )\n" + "       VALUES \n" + "            ('USD',\n" +
+			 * "             'NPR',\n" + "             ?,\n" + "             ?,\n" +
+			 * "             'NT_Sell',\n" + "             ?,\n" + "             'N',\n" +
+			 * "             ?,\n" + "             'JAVA_App',\n" + "             ?\n" +
+			 * "            )");
+			 */
+        	
+        	PreparedStatement pstmt = con.prepareStatement("INSERT INTO xxnt.xxnt_gl_daily_rates_stg "
+        			+ "(from_currency,to_currency,from_date,end_date,conv_type,exchange_rate,status,error_message) VALUES "
+        			+ "(?,?,?,?,?,?,?,?)");
             
-            pstmt.setInt(1,1);
-            pstmt.setDouble(2, dollar.getSelling_usd());
-            pstmt.setDouble(3,dollar.getBuying_usd());
+        	
+
+            //pstmt.setInt(1,1);
+        	pstmt.setString(1, "USD");
+        	pstmt.setString(2, "NPR");
+        	pstmt.setDate(3,(java.sql.Date) siteDate);
+        	pstmt.setDate(4,(java.sql.Date) siteDate);
+        	pstmt.setString(5, "NT_Sell");
+            pstmt.setDouble(6, dollar.getSelling_usd());
+            pstmt.setString(7, "N");
+            pstmt.setString(8, "Data inserted Successfully");
+            //pstmt.setString(9, "Java_App");
+           // pstmt.setTimestamp(10,getCurrentTimeStamp());
+            //pstmt.setDouble(3,dollar.getBuying_usd());
             //pstmt.setTimestamp(4,getCurrentTimeStamp());
-            pstmt.setDate(4,(java.sql.Date) siteDate);
+            //pstmt.setString(4, "Data inserted Successfully");
+            //pstmt.setDate(5,(java.sql.Date) siteDate);
+           // pstmt.setTimestamp(5,getCurrentTimeStamp());
+            
+            System.out.println("executed till here");
             
             pstmt.execute();
             System.out.println("Date inserted successfully");
